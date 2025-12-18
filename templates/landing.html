@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}MindTrack 360 - Institutional Wellness Platform{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-bg">
+    <nav class="container mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <span class="text-white text-2xl font-bold">MindTrack 360</span>
+            </div>
+            <a href="{{ url_for('replit_auth.login') }}" 
+               class="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition">
+                Sign In
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-20">
+        <div class="flex flex-col lg:flex-row items-center">
+            <div class="lg:w-1/2 text-white">
+                <h1 class="text-5xl font-bold mb-6 leading-tight">
+                    Holistic Institutional<br>Wellness & Stress Analytics
+                </h1>
+                <p class="text-xl mb-8 opacity-90">
+                    AI-powered platform designed to detect, monitor, and mitigate stress within educational institutions. 
+                    Covering the entire ecosystem - Students, Teachers, and Administrators.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('replit_auth.login') }}" 
+                       class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition text-lg">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+            <div class="lg:w-1/2 mt-12 lg:mt-0">
+                <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 card-shadow">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white/20 rounded-xl p-6 text-white text-center">
+                            <div class="text-4xl mb-2">Student</div>
+                            <p class="text-sm opacity-80">Personal wellness tracking & mood logging</p>
+                        </div>
+                        <div class="bg-white/20 rounded-xl p-6 text-white text-center">
+                            <div class="text-4xl mb-2">Teacher</div>
+                            <p class="text-sm opacity-80">Class mood aggregates & workload insights</p>
+                        </div>
+                        <div class="bg-white/20 rounded-xl p-6 text-white text-center">
+                            <div class="text-4xl mb-2">Admin</div>
+                            <p class="text-sm opacity-80">Department heatmaps & crisis alerts</p>
+                        </div>
+                        <div class="bg-white/20 rounded-xl p-6 text-white text-center">
+                            <div class="text-4xl mb-2">AI</div>
+                            <p class="text-sm opacity-80">NLP-powered stress analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 py-16">
+        <h2 class="text-3xl font-bold text-white text-center mb-12">Key Features</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-2xl p-8 card-shadow">
+                <div class="text-4xl mb-4">Privacy First</div>
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">Anonymous Tracking</h3>
+                <p class="text-gray-600">Teachers see only aggregate data, never individual student information. Building trust through privacy.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 card-shadow">
+                <div class="text-4xl mb-4">AI Analysis</div>
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">Smart Stress Detection</h3>
+                <p class="text-gray-600">NLP-powered sentiment analysis converts your thoughts into actionable stress scores.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 card-shadow">
+                <div class="text-4xl mb-4">Visual Insights</div>
+                <h3 class="text-xl font-semibold mb-3 text-gray-800">Interactive Charts</h3>
+                <p class="text-gray-600">Beautiful visualizations of stress trends, department heatmaps, and wellness metrics.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="container mx-auto px-6 py-8 text-center text-white/70">
+        <p>MindTrack 360 - Holistic Institutional Wellness Platform</p>
+    </footer>
+</div>
+{% endblock %}

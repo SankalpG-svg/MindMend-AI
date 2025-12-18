@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - MindTrack 360{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-xl font-bold text-purple-600">MindTrack 360</span>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin" class="text-purple-600 font-medium">Dashboard</a>
+                    <a href="/admin/users" class="text-gray-600 hover:text-gray-800">Users</a>
+                    <a href="/admin/setup" class="text-gray-600 hover:text-gray-800">Setup</a>
+                    <div class="flex items-center space-x-2">
+                        {% if user.profile_image_url %}
+                        <img src="{{ user.profile_image_url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                        {% endif %}
+                        <span class="text-gray-700">{{ user.first_name or 'Admin' }}</span>
+                        <span class="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">Admin</span>
+                    </div>
+                    <a href="{{ url_for('replit_auth.logout') }}" class="text-gray-600 hover:text-gray-800">Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Institutional Overview</h1>
+        <p class="text-gray-600 mb-8">Monitor campus-wide wellness and identify stress hotspots</p>
+
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 card-shadow">
+                <div class="text-gray-500 text-sm mb-1">Total Users</div>
+                <div class="text-3xl font-bold text-gray-800">{{ total_users }}</div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 card-shadow">
+                <div class="text-gray-500 text-sm mb-1">Total Mood Logs</div>
+                <div class="text-3xl font-bold text-gray-800">{{ total_logs }}</div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 card-shadow">
+                <div class="text-gray-500 text-sm mb-1">Campus Avg Stress</div>
+                <div class="text-3xl font-bold {% if overall_avg_stress >= 70 %}text-red-500{% elif overall_avg_stress >= 40 %}text-yellow-500{% else %}text-green-500{% endif %}">
+                    {{ overall_avg_stress }}%
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 card-shadow">
+                <div class="text-gray-500 text-sm mb-1">Active Alerts</div>
+                <div class="text-3xl font-bold text-red-500">{{ alerts|length }}</div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl p-6 card-shadow mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Department Stress Heatmap</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        {% for stat in dept_stats %}
+                        <div class="p-4 rounded-xl {% if stat.avg_stress >= 70 %}stress-high{% elif stat.avg_stress >= 40 %}stress-medium{% else %}stress-low{% endif %}">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold">{{ stat.department.name }}</h3>
+                                <span class="text-sm">{{ stat.student_count }} students</span>
+                            </div>
+                            <div class="text-3xl font-bold mb-1">{{ stat.avg_stress }}%</div>
+                            <div class="w-full bg-white/50 rounded-full h-2">
+                                <div class="h-2 rounded-full bg-gray-800/30" style="width: {{ stat.avg_stress }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if not dept_stats %}
+                    <p class="text-gray-500 text-center py-8">No departments configured yet. Go to Setup to add departments.</p>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4">Campus Stress Trend</h2>
+                    <canvas id="campusStressChart" height="150"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4">Crisis Alerts</h2>
+                    {% if alerts %}
+                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                        {% for alert in alerts %}
+                        <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-red-500 font-medium uppercase">{{ alert.severity }}</span>
+                                <span class="text-xs text-gray-500">{{ alert.created_at.strftime('%b %d, %H:%M') }}</span>
+                            </div>
+                            <p class="text-sm text-gray-700">{{ alert.message }}</p>
+                            <button onclick="resolveAlert({{ alert.id }})" 
+                                    class="mt-2 text-xs text-purple-600 hover:underline">Mark Resolved</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">All Clear!</div>
+                        <p>No active crisis alerts</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+                    <div class="space-y-3">
+                        <a href="/admin/users" class="block w-full text-center bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition">
+                            Manage Users
+                        </a>
+                        <a href="/admin/setup" class="block w-full text-center border border-purple-600 text-purple-600 py-2 rounded-lg hover:bg-purple-50 transition">
+                            Configure System
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function resolveAlert(alertId) {
+    try {
+        await fetch(`/api/admin/alerts/${alertId}/resolve`, { method: 'POST' });
+        location.reload();
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+const ctx = document.getElementById('campusStressChart');
+if (ctx) {
+    new Chart(ctx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Campus Average Stress',
+                data: [45, 52, 48, 55, 62, 35, 30],
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 0, max: 100 } }
+        }
+    });
+}
+</script>
+{% endblock %}

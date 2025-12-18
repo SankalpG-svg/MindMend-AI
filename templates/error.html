@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Error - MindTrack 360{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-bg flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center card-shadow">
+        <div class="text-6xl mb-4">Error</div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Access Denied</h1>
+        <p class="text-gray-600 mb-6">
+            {{ message or "You don't have permission to access this page or an error occurred during authentication." }}
+        </p>
+        <a href="/" class="inline-block bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-700 transition">
+            Go to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

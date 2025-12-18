@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - MindTrack 360{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <nav class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-xl font-bold text-purple-600">MindTrack 360</span>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        {% if user.profile_image_url %}
+                        <img src="{{ user.profile_image_url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                        {% endif %}
+                        <span class="text-gray-700">{{ user.first_name or user.email or 'Teacher' }}</span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">Teacher</span>
+                    </div>
+                    <a href="/settings" class="text-gray-600 hover:text-gray-800">Settings</a>
+                    <a href="{{ url_for('replit_auth.logout') }}" class="text-gray-600 hover:text-gray-800">Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Classroom Pulse</h1>
+        <p class="text-gray-600 mb-8">Monitor aggregate stress levels across your classes (individual student data is protected)</p>
+
+        {% if class_stats %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {% for stat in class_stats %}
+            <div class="bg-white rounded-2xl p-6 card-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">{{ stat.class.name }}</h3>
+                    <span class="text-sm text-gray-500">{{ stat.student_count }} students</span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-600">Average Stress</span>
+                        <span class="font-bold {% if stat.avg_stress >= 70 %}text-red-500{% elif stat.avg_stress >= 40 %}text-yellow-500{% else %}text-green-500{% endif %}">
+                            {{ stat.avg_stress }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="h-3 rounded-full {% if stat.avg_stress >= 70 %}bg-red-500{% elif stat.avg_stress >= 40 %}bg-yellow-500{% else %}bg-green-500{% endif %}" 
+                             style="width: {{ stat.avg_stress }}%"></div>
+                    </div>
+                </div>
+
+                {% if stat.high_stress_count > 0 %}
+                <div class="bg-red-50 text-red-700 p-3 rounded-lg text-sm">
+                    {{ stat.high_stress_count }} high stress entries this week
+                </div>
+                {% else %}
+                <div class="bg-green-50 text-green-700 p-3 rounded-lg text-sm">
+                    No high stress alerts this week
+                </div>
+                {% endif %}
+
+                <button onclick="loadClassChart({{ stat.class.id }}, '{{ stat.class.name }}')" 
+                        class="mt-4 w-full text-purple-600 border border-purple-600 py-2 rounded-lg hover:bg-purple-50 transition">
+                    View Trend
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-2xl p-8 card-shadow text-center">
+            <div class="text-6xl mb-4">Classes Not Assigned</div>
+            <h3 class="text-xl font-semibold mb-2">No Classes Assigned Yet</h3>
+            <p class="text-gray-600">Contact your administrator to assign classes to your account.</p>
+        </div>
+        {% endif %}
+
+        <div id="classChartModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="chartTitle" class="text-xl font-semibold"></h3>
+                    <button onclick="closeChartModal()" class="text-gray-500 hover:text-gray-700">X</button>
+                </div>
+                <canvas id="classStressChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 card-shadow">
+            <h2 class="text-xl font-semibold mb-4">Privacy Notice</h2>
+            <div class="bg-blue-50 p-4 rounded-lg text-blue-800">
+                <p><strong>Data Protection:</strong> To protect student privacy, you only see aggregated statistics. 
+                Individual student entries are never revealed. This builds trust and encourages honest reporting.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let chartInstance = null;
+
+async function loadClassChart(classId, className) {
+    try {
+        const response = await fetch(`/api/class/${classId}/stats?days=7`);
+        const data = await response.json();
+        
+        document.getElementById('chartTitle').textContent = className + ' - Weekly Stress Trend';
+        document.getElementById('classChartModal').classList.remove('hidden');
+        
+        const ctx = document.getElementById('classStressChart').getContext('2d');
+        
+        if (chartInstance) chartInstance.destroy();
+        
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.stats.map(s => s.date),
+                datasets: [{
+                    label: 'Average Stress Score',
+                    data: data.stats.map(s => s.avg_stress),
+                    backgroundColor: data.stats.map(s => 
+                        s.avg_stress >= 70 ? '#ef4444' : 
+                        s.avg_stress >= 40 ? '#eab308' : '#22c55e'
+                    ),
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function closeChartModal() {
+    document.getElementById('classChartModal').classList.add('hidden');
+}
+</script>
+{% endblock %}
