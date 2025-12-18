@@ -22,3 +22,4 @@ conversation and actionable guidance.
 - Utkarsha Shrivastava
 - Sankalp Gupta
 - Agrima Soni
+- Tanishka Meena
