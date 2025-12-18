@@ -5,7 +5,7 @@ from sqlalchemy import func
 
 from app import app, db
 from models import User, Department, Class, MoodLog, Alert
-from replit_auth import require_login, require_role, make_replit_blueprint
+from auth import require_login, require_role, make_replit_blueprint
 from stress_analyzer import analyze_stress, get_mood_emoji
 
 app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
